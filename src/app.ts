@@ -1,11 +1,8 @@
-import { Request, Response } from "express";
+import isAuth from "./utils/isAuth";
 
 const express = require("express");
-
 const cors = require("cors");
-
 const app = express();
-
 const mongoose = require("mongoose");
 
 // mongodb connection
@@ -15,6 +12,7 @@ const log = require("./logger");
 
 // routes
 const todoRoutes = require("./routes/todo.routes");
+const authRoutes = require("./routes/auth.routes");
 
 // controllers
 const errorController = require("./controllers/error.controller");
@@ -31,9 +29,10 @@ if (process.env.NODE_ENV !== "production") {
 
 const PORT = process.env.PORT;
 
+// Auth routes
+app.use("/api/auth", authRoutes);
 // Todo routes
-app.use("/api", todoRoutes);
-
+app.use("/api", isAuth, todoRoutes);
 // Not found 404
 app.use(errorController.get404);
 
