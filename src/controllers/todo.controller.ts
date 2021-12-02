@@ -1,23 +1,23 @@
-import { Request, Response } from "express";
+import { Response } from "express";
+import MyRequest from "../types/MyRequest";
 import Todo from "../models/todo";
-import dayjs from "dayjs";
 
 const log = require("../logger");
 
-exports.getTodos = (req: Request, res: Response) => {
-  Todo.find()
+exports.getTodos = (req: MyRequest, res: Response) => {
+  Todo.find({ user: req.userId })
     .then((todos) => {
       res.json(todos);
     })
     .catch((err) => log.error(err));
 };
 
-exports.addTodo = (req: Request, res: Response) => {
+exports.addTodo = (req: MyRequest, res: Response) => {
   const todo = new Todo({
     title: req.body.title,
     description: req.body.description,
-    createdAt: dayjs().format(),
     isUpdated: false,
+    user: req.userId,
   });
   todo
     .save()
@@ -31,26 +31,25 @@ exports.addTodo = (req: Request, res: Response) => {
     });
 };
 
-exports.updateTodo = (req: Request, res: Response) => {
+exports.updateTodo = (req: MyRequest, res: Response) => {
   const todoId = req.params.todoId;
   const updatedTitle = req.body.title;
   const updatedDescription = req.body.description;
-  const createdAt = req.body.createdAt;
-  const updatedAt = dayjs().format();
   const isUpdated = true;
 
   Todo.findById(todoId)
     .then((todo) => {
+      // checking if the request came from the original owner of the todo
+      if (todo?.user !== req.userId)
+        return res.status(403).json({ error: "UnAuthorized" });
+
       // @ts-ignore
       todo?.title = updatedTitle;
       // @ts-ignore
       todo?.description = updatedDescription;
       // @ts-ignore
-      todo?.createdAt = createdAt;
-      // @ts-ignore
-      todo?.updatedAt = updatedAt;
-      // @ts-ignore
       todo?.isUpdated = isUpdated;
+
       todo
         ?.save()
         .then(() => {
@@ -68,16 +67,30 @@ exports.updateTodo = (req: Request, res: Response) => {
     });
 };
 
-exports.deleteTodo = (req: Request, res: Response) => {
+exports.deleteTodo = (req: MyRequest, res: Response) => {
   const todoId = req.params.todoId;
 
-  Todo.findByIdAndDelete(todoId)
-    .then(() => {
-      log.info("Todo was deleted");
-      res.send("Success");
+  Todo.findById(todoId)
+    .then((todo) => {
+      // checking if the request came from the original owner of the todo
+      if (todo?.user !== req.userId)
+        return res.status(403).json({ error: "UnAuthorized" });
+
+      // delete the todo
+      todo.delete();
     })
     .catch((err) => {
       log.error(err);
-      res.status(500).send("Fail");
+      res.status(500);
     });
+
+  // Todo.findByIdAndDelete(todoId)
+  //   .then(() => {
+  //     log.info("Todo was deleted");
+  //     res.send("Success");
+  //   })
+  //   .catch((err) => {
+  //     log.error(err);
+  //     res.status(500).send("Fail");
+  //   });
 };
