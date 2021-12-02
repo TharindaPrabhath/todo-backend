@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 
 const express = require("express");
 
+const cors = require("cors");
+
 const app = express();
 
 const mongoose = require("mongoose");
@@ -17,6 +19,7 @@ const todoRoutes = require("./routes/todo.routes");
 // controllers
 const errorController = require("./controllers/error.controller");
 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
