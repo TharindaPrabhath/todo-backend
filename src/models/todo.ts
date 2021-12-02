@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 export interface TodoDocument extends mongoose.Document {
   title: string;
@@ -6,29 +6,30 @@ export interface TodoDocument extends mongoose.Document {
   createdAt: Date;
   updatedAt: Date;
   isUpdated: boolean;
+  user: string;
 }
 
-const TodoSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
+const TodoSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: false,
+    },
+    isUpdated: {
+      type: Boolean,
+      default: false,
+    },
+    user: {
+      type: Schema.Types.ObjectId,
+      required: true,
+    },
   },
-  description: {
-    type: String,
-    required: false,
-  },
-  createdAt: {
-    type: Date,
-    required: true,
-  },
-  updatedAt: {
-    type: Date,
-  },
-  isUpdated: {
-    type: Boolean,
-    default: false,
-  },
-});
+  { timestamps: true }
+);
 
 const Todo = mongoose.model<TodoDocument>("Todo", TodoSchema);
 
