@@ -17,12 +17,13 @@ exports.addTodo = (req: Request, res: Response) => {
     title: req.body.title,
     description: req.body.description,
     createdAt: dayjs().format(),
+    isUpdated: false,
   });
   todo
     .save()
-    .then(() => {
+    .then((insertedTodo: any) => {
       log.info("New Todo was added");
-      res.status(200).send("Success");
+      res.status(200).json(insertedTodo._doc);
     })
     .catch((err: any) => {
       log.error(err);
@@ -69,6 +70,7 @@ exports.updateTodo = (req: Request, res: Response) => {
 
 exports.deleteTodo = (req: Request, res: Response) => {
   const todoId = req.params.todoId;
+
   Todo.findByIdAndDelete(todoId)
     .then(() => {
       log.info("Todo was deleted");
